@@ -160,10 +160,3 @@ Correlation Matrix
 │ mlp       │  2.40102 │
 ╘═══════════╧══════════╛
 ```
-
-
-## Installation (Development)
-```bash
-git clone ...
-cd autostack
-pip install -e .
