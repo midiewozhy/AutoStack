@@ -8,6 +8,7 @@ from sklearn.metrics import (
     r2_score
 )
 from ..core import BaseStacker
+from ..summary import _generate_CI_table
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from tabulate import tabulate
 
@@ -143,31 +144,13 @@ class AutoStackRegressor(BaseStacker, RegressorMixin):
 
             summary_dict['vif'] = vif_data
 
-            # calculate CI, sign stability, median, mean
-            stats_name =  ['mean', 'median', '2.5% quantile', '97.5% quantile', 'sign stability']
-            row_name = ['Intercept'] + base_learner_names
-            bootstrap_results = np.zeros((bootstrap_idx.shape[0], len(row_name)))
-            for i, idx in enumerate(bootstrap_idx):
-                sample_X = self.meta_features_[idx, :]
-                sample_y = self.y_[idx]
-                meta = clone(self.meta_learner_).fit(sample_X, sample_y)
-                bootstrap_results[i, 0] = meta.intercept_
-                bootstrap_results[i, 1:] = meta.coef_
-
-            # mean median CI
-            means = np.mean(bootstrap_results, axis = 0)
-            median = np.median(bootstrap_results, axis = 0)
-            lower = np.percentile(bootstrap_results, 2.5, axis = 0)
-            upper = np.percentile(bootstrap_results, 97.5, axis = 0)
-            
-            # sign stability
-            signs = np.sign(bootstrap_results)
-            counts = np.array([(signs == 1).sum(axis=0), (signs == -1).sum(axis=0), (signs == 0).sum(axis=0)]) / bootstrap_idx.shape[0]
-            stability = np.max(counts, axis = 0)
-
-            # form a table
-            CI_table = pd.DataFrame(np.column_stack((means, median, lower, upper, stability)) ,index = row_name, columns = stats_name)
-            summary_dict['CI'] = CI_table
+            # create summary table containins CI, mean, median, sign stability for intercept_/coef or feature_importances_
+            summary_dict['CI'] = _generate_CI_table(
+                base_learner_names, 
+                bootstrap_idx, 
+                self.meta_features_, 
+                self.y_, 
+                self.meta_learner_)
 
             return summary_dict
             

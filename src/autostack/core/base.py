@@ -7,7 +7,7 @@ from ..registry import BASE_LEARNER_REGISTRY, META_LEARNER_REGISTRY
 
 class BaseStacker(ABC, BaseEstimator):
     """
-    This class is the father class of every stacking classes.
+    This class is the parent class of every stacking classes.
     Responsible for generating K-fold OOF matrix, parameter tuning,
     and parallel training.
 
