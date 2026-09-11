@@ -145,8 +145,16 @@ class AutoStackRegressor(BaseStacker, RegressorMixin):
             summary_dict['vif'] = vif_data
 
             # create summary table containins CI, mean, median, sign stability for intercept_/coef or feature_importances_
+            if hasattr(self.meta_learner_fitted_, "feature_importances_"):
+                row_name = base_learner_names
+                stats_name = ['mean', 'median', '2.5% quantile', '97.5% quantile']
+            elif hasattr(self.meta_learner_fitted_, "intercept_") and hasattr(self.meta_learner_fitted_, "coef_"):
+                row_name = ['intercept'] + base_learner_names
+                stats_name = ['mean', 'median', '2.5% quantile', '97.5% quantile', 'sign stability']
+
             summary_dict['CI'] = _generate_CI_table(
-                base_learner_names, 
+                row_name, 
+                stats_name,
                 bootstrap_idx, 
                 self.meta_features_, 
                 self.y_, 
@@ -180,7 +188,7 @@ class AutoStackRegressor(BaseStacker, RegressorMixin):
             print("=" * 70)
         
             # print bootstrap stats table
-            print("\n[BOOTSTRAP COEFFICIENT ANALYSIS]")
+            print("\n[BOOTSTRAP COEFFICIENT/FEATURE IMPORTANCE ANALYSIS]")
             print(tabulate(summary_table['CI'], headers="keys", tablefmt="fancy_grid"))
             print("=" * 70)
 

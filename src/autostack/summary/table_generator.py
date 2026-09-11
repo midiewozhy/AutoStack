@@ -3,7 +3,8 @@ import pandas as pd
 from sklearn.base import clone
 
 def _generate_CI_table(
-        base_learner_names: list[str], 
+        row_name: list[str], 
+        stats_name: list[str],
         bootstrap_idx: np.ndarray, 
         meta_features_: np.ndarray, 
         y_: np.ndarray, 
@@ -14,8 +15,11 @@ def _generate_CI_table(
 
     Parameters:
     ----------
-    base_learner_names: list[str]
-        list containint names of the base learners.
+    row_name: list[str]
+        list contains names of the base learners (and 'intercept').
+
+    stats_name: list[str]
+        list contains names of the statistics to calculate.
 
     bootstrap_idx: np.ndarray of shape [bootstrap_iter, n_samples]
         bootstrap_idx[i, j] is a row index for the j-th
@@ -35,14 +39,8 @@ def _generate_CI_table(
     ----------
     CI_table: pd.DataFrame
     """
-    
-    # calculate CI, sign stability, median, mean
-    stats_name =  ['mean', 'median', '2.5% quantile', '97.5% quantile', 'sign stability']
 
-    if hasattr(meta_learner_, "intercept") and hasattr(meta_learner_,"coef"):
-        row_name = ['intercept'] + base_learner_names
-    elif hasattr(meta_learner_, "feature_importances_"):
-        row_name = base_learner_names
+    # calculate CI, sign stability, median, mean
     bootstrap_results = np.zeros((bootstrap_idx.shape[0], len(row_name)))
 
     for i, idx in enumerate(bootstrap_idx):
@@ -60,13 +58,16 @@ def _generate_CI_table(
     median = np.median(bootstrap_results, axis = 0)
     lower = np.percentile(bootstrap_results, 2.5, axis = 0)
     upper = np.percentile(bootstrap_results, 97.5, axis = 0)
+    stats = np.column_stack((means, median, lower, upper))
     
     # sign stability
-    signs = np.sign(bootstrap_results)
-    counts = np.array([(signs == 1).sum(axis=0), (signs == -1).sum(axis=0), (signs == 0).sum(axis=0)]) / bootstrap_idx.shape[0]
-    stability = np.max(counts, axis = 0)
+    if 'intercept' in row_name:
+        signs = np.sign(bootstrap_results)
+        counts = np.array([(signs == 1).sum(axis=0), (signs == -1).sum(axis=0), (signs == 0).sum(axis=0)]) / bootstrap_idx.shape[0]
+        stability = np.max(counts, axis = 0)
+        stats = np.column_stack((stats, stability))
 
     # form a table
-    CI_table = pd.DataFrame(np.column_stack((means, median, lower, upper, stability)) ,index = row_name, columns = stats_name)
+    CI_table = pd.DataFrame(stats, index = row_name, columns = stats_name)
 
     return CI_table
