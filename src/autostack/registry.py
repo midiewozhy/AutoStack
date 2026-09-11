@@ -91,7 +91,6 @@ META_LEARNER_REGISTRY['nn_enet'] = ElasticNet(alpha = 1, l1_ratio = 0.5, random_
 # Tree model
 #META_LEARNER_REGISTRY['dt'] = DecisionTreeRegressor(max_depth = None, random_state = 42)
 
-"""
 # Bagging models
 META_LEARNER_REGISTRY['rf'] = RandomForestRegressor(n_estimators = 100, max_depth = None, random_state = 42, n_jobs = -1)
 META_LEARNER_REGISTRY['et'] = ExtraTreesRegressor(n_estimators = 100, max_depth = None, random_state = 42, n_jobs = -1)
@@ -101,9 +100,11 @@ META_LEARNER_REGISTRY['gbm'] = GradientBoostingRegressor(n_estimators = 100, lea
 META_LEARNER_REGISTRY['hist_gbm'] = HistGradientBoostingRegressor(max_iter = 100, random_state = 42)
 META_LEARNER_REGISTRY['ada'] = AdaBoostRegressor(n_estimators = 100, random_state = 42)
 
+"""
 # Support Vector Machine and neural network
 META_LEARNER_REGISTRY['svr'] = SVR(kernel = 'rbf', C = 1, gamma = 'scale')
 META_LEARNER_REGISTRY['mlp'] = MLPRegressor(hidden_layer_sizes = (64, 32), max_iter = 500, random_state = 42)
+"""
 
 # other models require extra installation
 try:
@@ -124,6 +125,7 @@ try:
 except ImportError:
     warnings.warn("CatBoost not installed. Skipping 'cat' in META_MODEL_REGISTRY.")
 
+"""
 try:
     from pygam import LinearGAM
     META_LEARNER_REGISTRY['gam'] = LinearGAM()
